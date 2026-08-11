@@ -1,27 +1,16 @@
-import { useState } from "react";
-import { Routes, Route, NavLink } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import AddBookPage from "./pages/AddBookPage";
-import BookDetailPage from "./pages/BookDetailPage";
+import { Link } from "react-router-dom";
 
-export default function App() {
-  // same state as Lesson 1 — now shared with every page via props
-  const [books, setBooks] = useState([]);
-  const addBook = (book) => setBooks((prev) => [book, ...prev]);
-
+// books arrive as a prop from App (Lesson 3 will switch this to Redux)
+export default function HomePage({ books }) {
   return (
-    <div className="container">
-      <nav className="topnav">
-        <NavLink to="/">Books</NavLink>
-        <NavLink to="/add">Add book</NavLink>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<HomePage books={books} />} />
-        <Route path="/add" element={<AddBookPage onAdd={addBook} />} />
-        <Route path="/books/:id" element={<BookDetailPage books={books} />} />
-        <Route path="*" element={<p>Page not found</p>} />
-      </Routes>
-    </div>
+    <ul className="books">
+      {books.map((b) => (
+        <li key={b.id}>
+          <Link to={`/books/${b.id}`}>
+            <strong>{b.title}</strong> ({b.year})
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
