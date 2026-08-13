@@ -1,20 +1,9 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
-import { store } from "./store/store";
-import { ThemeProvider } from "./context/ThemeContext.jsx";
-import App from "./App.jsx";
-import "./App.css";
-
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </BrowserRouter>
-    </Provider>
-  </StrictMode>
-);
+export function booksReducer(state, action) {
+  switch (action.type) {
+    case "load":   return action.books; 
+    case "add":    return [action.book, ...state];
+    case "delete": return state.filter((b) => b.id !== action.id);
+    case "clear":  return [];
+    default:       return state;
+  }
+}
