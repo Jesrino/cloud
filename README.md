@@ -1,21 +1,20 @@
-import { createContext, useContext, useState } from "react";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
+import { store } from "./store/store";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import App from "./App.jsx";
+import "./App.css";
 
-const ThemeContext = createContext();
-
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState("dark");
-
-  function toggle() {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  }
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-
-export function useTheme() {
-  return useContext(ThemeContext);
-}
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <Provider store={store}>
+      <BrowserRouter>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </BrowserRouter>
+    </Provider>
+  </StrictMode>
+);
