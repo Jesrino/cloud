@@ -1,27 +1,37 @@
-.topnav {
-  display: flex;
-  gap: .35rem;
-  padding: .4rem;
-  margin-bottom: 1.75rem;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-.topnav a {
-  padding: .55rem 1.1rem;
-  border-radius: 9px;
-  color: var(--muted);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: .92rem;
-  transition: color .18s ease, background .18s ease;
-}
-.topnav a:hover {
-  color: var(--ink);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-.topnav a.active {                  /* current route, set by React Router */
-  color: #fff;
-  background: var(--accent);
-  box-shadow: 0 6px 16px -6px var(--accent);
+import { useState, useMemo, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { deleteBook } from "../store/booksSlice";
+
+export default function HomePage() {
+  const [query, setQuery] = useState("");
+  const books = useSelector((state) => state.books);
+  const dispatch = useDispatch();
+  const visibleBooks = useMemo(() => {
+    return books
+      .filter((b) => b.title.toLowerCase().includes(query.toLowerCase()))
+      .sort((a, b) => (a.year || 0) - (b.year || 0));
+  }, [books, query]);
+
+  const handleDelete = useCallback(
+    (id) => dispatch(deleteBook(id)),
+    [dispatch]
+  );
+
+  return (
+    <>
+      <input
+        className="search"
+        placeholder="Search title..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <ul className="books">
+        {visibleBooks.map((b) => (
+          <li key={b.id} onClick={() => handleDelete(b.id)}>
+            {b.title} {b.year ? `(${b.year})` : ""}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }
