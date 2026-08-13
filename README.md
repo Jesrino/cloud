@@ -1,30 +1,46 @@
-import { useTheme } from "./context/ThemeContext.jsx";
-import { Routes, Route, NavLink } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import AddBookPage from "./pages/AddBookPage";
-import BookDetailPage from "./pages/BookDetailPage";
+import { useState, useRef, useEffect } from "react";
 
-export default function App() {
-  const { theme, toggle } = useTheme();
+export default function BookForm({ onAdd }) {
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const authorRef = useRef(null); 
+
+  useEffect(() => {
+    authorRef.current?.focus(); 
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title || !author) return;
+    onAdd({ id: Date.now().toString(), title, author });
+    setTitle("");
+    setAuthor("");
+  };
 
   return (
-    <div className="app container" data-theme={theme}>
-      <div className="toolbar">
-        <nav className="topnav">
-          <NavLink to="/">Books</NavLink>
-          <NavLink to="/add">Add book</NavLink>
-        </nav>
-        <button className="theme-btn" onClick={toggle}>
-          {theme === "dark" ? " Light" : " Dark"}
-        </button>
+    <form onSubmit={handleSubmit} className="card">
+      <div>
+        <label>Author</label>
+        <input
+          ref={authorRef} // 2. attach the ref
+          type="text"
+          name="author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+        />
       </div>
 
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/add" element={<AddBookPage />} />
-        <Route path="/books/:id" element={<BookDetailPage />} />
-        <Route path="*" element={<p>Page not found</p>} />
-      </Routes>
-    </div>
+      <div>
+        <label>Title</label>
+        <input
+          type="text"
+          name="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+
+      <button type="submit">Add Book</button>
+    </form>
   );
 }
