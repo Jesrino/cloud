@@ -1,46 +1,21 @@
-import { useState, useRef, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
-export default function BookForm({ onAdd }) {
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const authorRef = useRef(null); 
+const ThemeContext = createContext();
 
-  useEffect(() => {
-    authorRef.current?.focus(); 
-  }, []);
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState("dark");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title || !author) return;
-    onAdd({ id: Date.now().toString(), title, author });
-    setTitle("");
-    setAuthor("");
-  };
+  function toggle() {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="card">
-      <div>
-        <label>Author</label>
-        <input
-          ref={authorRef} // 2. attach the ref
-          type="text"
-          name="author"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label>Title</label>
-        <input
-          type="text"
-          name="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </div>
-
-      <button type="submit">Add Book</button>
-    </form>
+    <ThemeContext.Provider value={{ theme, toggle }}>
+      {children}
+    </ThemeContext.Provider>
   );
+}
+
+export function useTheme() {
+  return useContext(ThemeContext);
 }
