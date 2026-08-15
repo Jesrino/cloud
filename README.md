@@ -1,36 +1,36 @@
 import { useState, useEffect } from "react";
-import * as api from "../api/books";
+import { useParams, useNavigate } from "react-router-dom";
+import { getBook } from "../api/books";
 
-export function useBooks() {
-  const [books, setBooks]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+export default function EditBookPage({ onUpdate }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [form, setForm] = useState(null);
 
-  // GET the whole list once when the hook is first used
+  // useEffect that GETs the single book, then fills the form
   useEffect(() => {
-    api.getBooks()
-      .then(setBooks)
-      .catch(() => setError("Could not reach the server"))
-      .finally(() => setLoading(false));
-  }, []);
+    getBook(id).then(setForm);          // GET /api/books/:id
+  }, [id]);                             // re-run if the id changes
 
-  // POST — add, then prepend the saved book to state
-  const addBook = async (form) => {
-    const saved = await api.createBook(form);
-    setBooks((prev) => [saved, ...prev]);
-  };
+  if (!form) return <div className="spinner" />;   // still loading the book
 
-  // DELETE — remove, then drop it from state
-  const removeBook = async (id) => {
-    await api.deleteBook(id);
-    setBooks((prev) => prev.filter((book) => book.id !== id));
-  };
+  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // PUT — update, then swap the changed book in state
-  const updateBook = async (id, changes) => {
-    const updated = await api.updateBook(id, changes);
-    setBooks((prev) => prev.map((book) => (book.id === id ? updated : book)));
-  };
+  async function save() {
+    await onUpdate(id, form);           // PUT via the useBooks hook
+    navigate("/");                      // back to the list
+  }
 
-  return { books, loading, error, addBook, removeBook, updateBook };
+  return (
+    <div className="card">
+      <h2>Edit book</h2>
+      <label>Title</label>
+      <input name="title" value={form.title} onChange={change} />
+      <label>Author</label>
+      <input name="author" value={form.author} onChange={change} />
+      <label>Year</label>
+      <input name="year" type="number" value={form.year} onChange={change} />
+      <button onClick={save}>Save changes</button>
+    </div>
+  );
 }
