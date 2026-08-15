@@ -1,47 +1,36 @@
-import { Link } from "react-router-dom";
-import { useState, useMemo, useCallback } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { deleteBook } from "../store/booksSlice";
+import { useState, useEffect } from "react";
+import * as api from "../api/books";
 
-export default function HomePage() {
-  const [query, setQuery] = useState("");
+export function useBooks() {
+  const [books, setBooks]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // 1. Move Hooks INSIDE the component body
-  const books = useSelector((state) => state.books);
-  const dispatch = useDispatch();
+  // GET the whole list once when the hook is first used
+  useEffect(() => {
+    api.getBooks()
+      .then(setBooks)
+      .catch(() => setError("Could not reach the server"))
+      .finally(() => setLoading(false));
+  }, []);
 
-  // 2. Filter & sort books safely
-  const visibleBooks = useMemo(() => {
-    if (!books) return [];
-    return books
-      .filter((b) => b.title.toLowerCase().includes(query.toLowerCase()))
-      .sort((a, b) => a.year - b.year);
-  }, [books, query]);
+  // POST — add, then prepend the saved book to state
+  const addBook = async (form) => {
+    const saved = await api.createBook(form);
+    setBooks((prev) => [saved, ...prev]);
+  };
 
-  // 3. Dispatch deletion inside an event handler
-  const handleDelete = useCallback(
-    (id) => {
-      dispatch(deleteBook(id));
-    },
-    [dispatch]
-  );
+  // DELETE — remove, then drop it from state
+  const removeBook = async (id) => {
+    await api.deleteBook(id);
+    setBooks((prev) => prev.filter((book) => book.id !== id));
+  };
 
-  return (
-    <div>
-      <input
-        className="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search books..."
-      />
+  // PUT — update, then swap the changed book in state
+  const updateBook = async (id, changes) => {
+    const updated = await api.updateBook(id, changes);
+    setBooks((prev) => prev.map((book) => (book.id === id ? updated : book)));
+  };
 
-      <ul className="books">
-        {visibleBooks.map((b) => (
-          <li key={b.id} onClick={() => handleDelete(b.id)}>
-            {b.title} ({b.year})
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  return { books, loading, error, addBook, removeBook, updateBook };
 }
